@@ -7,7 +7,7 @@
       background: #fff0f5;
       font-family: Arial;
       text-align: center;
-      padding: 50px;
+      padding: 30px;
     }
 
     h1 {
@@ -16,38 +16,41 @@
 
     .container {
       background: white;
-      padding: 30px;
+      padding: 20px;
       border-radius: 20px;
-      width: 400px;
-      margin: auto;
+      width: 420px;
+      margin: 20px auto;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
-    input {
-      padding: 10px;
-      width: 70%;
+    input, select {
+      padding: 8px;
+      margin: 5px;
       border-radius: 10px;
       border: 1px solid #ddd;
     }
 
     button {
-      padding: 10px;
+      padding: 8px 12px;
       border: none;
       border-radius: 10px;
       background: #ffb6c1;
       cursor: pointer;
     }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
     li {
       background: #f9f9f9;
+      margin: 5px;
+      padding: 8px;
+      border-radius: 10px;
+      list-style: none;
+    }
+
+    .party {
+      background: #e6f7ff;
       margin: 10px;
       padding: 10px;
-      border-radius: 10px;
+      border-radius: 15px;
     }
   </style>
 </head>
@@ -57,43 +60,97 @@
 <h1>🎮 던파 공대 메이커</h1>
 
 <div class="container">
+  <h3>캐릭터 추가</h3>
+  <input type="text" id="name" placeholder="닉네임">
+  
+  <select id="type">
+    <option value="딜러">딜러</option>
+    <option value="버퍼">버퍼</option>
+  </select>
+
+  <input type="number" id="power" placeholder="딜/버프력">
+
+  <button onclick="addChar()">추가</button>
+</div>
+
+<div class="container">
   <h3>캐릭터 DB</h3>
+  <ul id="list"></ul>
+</div>
 
-  <input type="text" id="charName" placeholder="캐릭터 이름 입력">
-  <button onclick="addCharacter()">추가</button>
-
-  <ul id="charList"></ul>
+<div class="container">
+  <button onclick="makeParty()">🎯 공대 자동 생성</button>
+  <div id="partyArea"></div>
 </div>
 
 <script>
-  let characters = [];
+let chars = [];
 
-  function addCharacter() {
-    const input = document.getElementById("charName");
-    const name = input.value.trim();
+function addChar() {
+  const name = document.getElementById("name").value;
+  const type = document.getElementById("type").value;
+  const power = parseInt(document.getElementById("power").value);
 
-    if (name === "") return;
+  if (!name || !power) return;
 
-    characters.push(name);
-    input.value = "";
-    renderList();
+  chars.push({ name, type, power });
+  render();
+}
+
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  chars.forEach((c, i) => {
+    list.innerHTML += `
+      <li>
+        ${c.name} (${c.type}) - ${c.power}
+        <button onclick="removeChar(${i})">❌</button>
+      </li>
+    `;
+  });
+}
+
+function removeChar(i) {
+  chars.splice(i, 1);
+  render();
+}
+
+function makeParty() {
+  const dealers = chars.filter(c => c.type === "딜러").sort((a,b)=>b.power-a.power);
+  const buffers = chars.filter(c => c.type === "버퍼").sort((a,b)=>b.power-a.power);
+
+  let parties = [];
+  let dIndex = 0;
+  let bIndex = 0;
+
+  while (dIndex + 2 < dealers.length && bIndex < buffers.length) {
+    let party = [];
+
+    party.push(buffers[bIndex++]);
+    party.push(dealers[dIndex++]);
+    party.push(dealers[dIndex++]);
+    party.push(dealers[dIndex++]);
+
+    parties.push(party);
   }
 
-  function renderList() {
-    const list = document.getElementById("charList");
-    list.innerHTML = "";
+  renderParty(parties);
+}
 
-    characters.forEach((char, index) => {
-      const li = document.createElement("li");
-      li.innerHTML = char + " <button onclick='removeChar(" + index + ")'>❌</button>";
-      list.appendChild(li);
+function renderParty(parties) {
+  const area = document.getElementById("partyArea");
+  area.innerHTML = "";
+
+  parties.forEach((p, i) => {
+    let html = `<div class="party"><b>${i+1}파티</b><br>`;
+    p.forEach(c => {
+      html += `${c.name} (${c.type}) - ${c.power}<br>`;
     });
-  }
-
-  function removeChar(index) {
-    characters.splice(index, 1);
-    renderList();
-  }
+    html += `</div>`;
+    area.innerHTML += html;
+  });
+}
 </script>
 
 </body>
