@@ -71,6 +71,7 @@
   <input type="number" id="power" placeholder="딜/버프력">
 
   <button onclick="addChar()">추가</button>
+  <button onclick="crawlAdven()">🔥 던담 불러오기</button>
 </div>
 
 <div class="container">
@@ -86,6 +87,7 @@
 <script>
 let chars = [];
 
+/*************** 기본 기능 ***************/
 function addChar() {
   const name = document.getElementById("name").value;
   const type = document.getElementById("type").value;
@@ -116,6 +118,7 @@ function removeChar(i) {
   render();
 }
 
+/*************** 공대 생성 ***************/
 function makeParty() {
   const dealers = chars.filter(c => c.type === "딜러").sort((a,b)=>b.power-a.power);
   const buffers = chars.filter(c => c.type === "버퍼").sort((a,b)=>b.power-a.power);
@@ -150,6 +153,87 @@ function renderParty(parties) {
     html += `</div>`;
     area.innerHTML += html;
   });
+}
+
+/*************** 던담 크롤링 ***************/
+async function fetchDundam(advenName) {
+  const url = "https://dundam.xyz/dat/searchData.jsp?server=adven&name=" + encodeURIComponent(advenName);
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}"
+    });
+
+    const text = await res.text();
+    const s = text.indexOf("{");
+    const e = text.lastIndexOf("}");
+
+    if (s !== -1) {
+      return JSON.parse(text.substring(s, e + 1)).characters;
+    }
+  } catch (e) {
+    console.log("크롤링 실패:", e);
+  }
+
+  return [];
+}
+
+function buildScoreMap(charsData) {
+  const map = {};
+
+  charsData.forEach(c => {
+    const nameKey = c.name.toLowerCase();
+
+    const isMuri = String(c.setname).includes("무리");
+    const isEnchant = String(c.job).includes("인챈트리스");
+
+    let score = "0";
+
+    if (isMuri && c.ozma) {
+      const eok = (c.ozma.match(/(\d+)\s*억/) || [0, 0])[1];
+      const man = (c.ozma.match(/(\d+)\s*만/) || [0, 0])[1];
+
+      const raw = (Number(eok) * 100000000) + (Number(man) * 10000);
+      score = Math.floor((raw / 1.08 * 1.24) / 100000000) + "억";
+
+    } else if (isEnchant && c.buffScore4) {
+      score = Math.floor(Number(c.buffScore4.replace(/,/g,'')) / 10000) + "만";
+
+    } else if (c.buffScore && c.buffScore !== "0") {
+      score = Math.floor(Number(c.buffScore.replace(/,/g,'')) / 10000) + "만";
+
+    } else if (c.ozma) {
+      score = (c.ozma.match(/(\d+)\s*억/) || ["", "0"])[1] + "억";
+    }
+
+    map[nameKey] = {
+      score: score,
+      fame: String(c.fame || "0")
+    };
+  });
+
+  return map;
+}
+
+/*************** 버튼 연결 ***************/
+async function crawlAdven() {
+  const adven = prompt("모험단 이름 입력");
+  if (!adven) return;
+
+  const data = await fetchDundam(adven);
+  const map = buildScoreMap(data);
+
+  Object.values(map).forEach(c => {
+    chars.push({
+      name: "던담캐릭",
+      type: "딜러",
+      power: parseInt(c.fame)
+    });
+  });
+
+  render();
 }
 </script>
 
