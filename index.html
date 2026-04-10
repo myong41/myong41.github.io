@@ -1,58 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>귀여운 사이트</title>
+  <title>던파 공대 메이커</title>
   <style>
     body {
       background: #fff0f5;
-      color: #333;
+      font-family: Arial;
       text-align: center;
-      font-family: "Arial", sans-serif;
-      margin-top: 100px;
+      padding: 50px;
     }
 
     h1 {
-      font-size: 48px;
       color: #ff69b4;
     }
 
-    p {
-      font-size: 20px;
-    }
-
-    button {
-      padding: 12px 20px;
-      font-size: 16px;
-      background: #ffb6c1;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #ff69b4;
-      color: white;
-    }
-
-    .box {
+    .container {
       background: white;
       padding: 30px;
       border-radius: 20px;
-      width: 300px;
+      width: 400px;
       margin: auto;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    input {
+      padding: 10px;
+      width: 70%;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #ffb6c1;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f9f9f9;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h1>🐰 안녕!</h1>
-  <p>내 귀여운 웹사이트에 온 걸 환영해 💖</p>
+<h1>🎮 던파 공대 메이커</h1>
 
-  <button onclick="alert('반가워! 😊')">눌러줘!</button>
+<div class="container">
+  <h3>캐릭터 DB</h3>
+
+  <input type="text" id="charName" placeholder="캐릭터 이름 입력">
+  <button onclick="addCharacter()">추가</button>
+
+  <ul id="charList"></ul>
 </div>
+
+<script>
+  let characters = [];
+
+  function addCharacter() {
+    const input = document.getElementById("charName");
+    const name = input.value.trim();
+
+    if (name === "") return;
+
+    characters.push(name);
+    input.value = "";
+    renderList();
+  }
+
+  function renderList() {
+    const list = document.getElementById("charList");
+    list.innerHTML = "";
+
+    characters.forEach((char, index) => {
+      const li = document.createElement("li");
+      li.innerHTML = char + " <button onclick='removeChar(" + index + ")'>❌</button>";
+      list.appendChild(li);
+    });
+  }
+
+  function removeChar(index) {
+    characters.splice(index, 1);
+    renderList();
+  }
+</script>
 
 </body>
 </html>
